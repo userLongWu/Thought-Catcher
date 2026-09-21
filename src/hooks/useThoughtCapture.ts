@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { type ThoughtDraft } from '../db/database'
-import { mockAiTranslate } from '../lib/mockAiTranslate'
+import { generateExpressions } from '../lib/aiClient'
 
 interface UseThoughtCaptureOptions {
   addThought: (thought: ThoughtDraft) => Promise<number>
@@ -11,7 +11,7 @@ export interface UseThoughtCaptureResult {
   isSubmitting: boolean
   submitError: Error | null
   setInputValue: (value: string) => void
-  submitThought: () => Promise<boolean>
+  submitThought: (mode: 'ai' | 'manual') => Promise<boolean>
 }
 
 export function useThoughtCapture({
@@ -22,7 +22,7 @@ export function useThoughtCapture({
   const [submitError, setSubmitError] = useState<Error | null>(null)
   const submissionPending = useRef(false)
 
-  async function submitThought(): Promise<boolean> {
+  async function submitThought(mode: 'ai' | 'manual'): Promise<boolean> {
     const originalText = inputValue.trim()
     if (!originalText || submissionPending.current) {
       return false
@@ -33,14 +33,16 @@ export function useThoughtCapture({
     setSubmitError(null)
 
     try {
-      const translation = await mockAiTranslate(originalText)
+      const translation = mode === 'ai' ? await generateExpressions(originalText) : null
 
       await addThought({
         originalText,
-        translatedCasual: translation.translatedCasual,
-        translatedFormal: translation.translatedFormal,
-        grammarNotes: translation.grammarNotes,
-        tags: translation.tags,
+        translatedCasual: translation?.translatedCasual ?? '',
+        translatedFormal: translation?.translatedFormal ?? '',
+        grammarNotes: translation?.grammarNotes ?? '',
+        tags: translation?.tags ?? [],
+        generationMode: mode,
+        generationModel: translation?.model,
       })
 
       setInputValue('')
