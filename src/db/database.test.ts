@@ -5,6 +5,7 @@ import {
   addThought,
   clearThoughts,
   deleteThought,
+  db,
   getThoughts,
   type ThoughtDraft,
 } from './database'
@@ -39,6 +40,17 @@ describe('thought database', () => {
       tags: ['note'],
     })
     expect(thoughts[0].createdAt).toBeInstanceOf(Date)
+  })
+
+  it('retains records after reopening local storage and persists deletion', async () => {
+    const id = await addThought(makeThought({ originalText: '刷新后仍在' }))
+    db.close()
+    await db.open()
+    expect(await getThoughts()).toEqual([expect.objectContaining({ id, originalText: '刷新后仍在' })])
+    await deleteThought(id)
+    db.close()
+    await db.open()
+    expect(await getThoughts()).toEqual([])
   })
 
   it('returns thoughts newest first', async () => {

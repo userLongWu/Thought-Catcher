@@ -1,73 +1,57 @@
-# React + TypeScript + Vite
+# Thought Catcher · 念头捕捉 Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个使用 **React、TypeScript、Vite 和 Dexie / IndexedDB** 构建的本地 Web Demo，演示：
 
-Currently, two official plugins are available:
+**输入念头 → 模拟处理 → 保存到浏览器 → 按日期回顾。**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> 当前使用 Mock AI，输出是固定模板，不是真实翻译或语法分析。无需 API Key，念头不会发送给 AI 服务。
 
-## React Compiler
+## 当前功能
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 用“新建念头”按钮或 **Ctrl / ⌘ + K** 打开捕捉面板，支持键盘与触摸操作。
+- 输入念头后通过按钮或 Enter 提交；处理期间显示状态，失败时保留输入并在面板内提示。
+- 显示带明确模拟标识的口语、正式表达和语法示例。
+- 按本地日期分组回顾记录，新增内容即时出现在时间线。
+- 逐条确认删除记录，并显示删除失败的反馈。
+- 保存的记录可在同一浏览器、同一地址刷新后继续查看。
 
-## Expanding the ESLint configuration
+## 本地运行
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+本次验证使用 Node.js 24 和 npm 11。
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
+npm run dev -- --host 127.0.0.1 --port 43174 --strictPort
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+打开 [http://127.0.0.1:43174](http://127.0.0.1:43174)。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 两分钟演示
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. 在捕捉面板输入“今天想学一个新表达。”，点击“保存念头”，等待约 1.5 秒的模拟处理。
+2. 查看时间线中的原文、模拟输出和日期分组。
+3. 点击“新建念头”，再保存一条记录；也可以用 **Ctrl / ⌘ + K** 打开面板。
+4. 用 **Esc** 关闭面板，再重新打开，确认键盘和可点击入口都可用。
+5. 刷新页面，确认两条记录仍在。
+6. 选择一条记录删除：先取消确认，检查它仍在；再确认删除，检查另一条记录保留。
+
+中文输入法正在选字时，Enter 用于确认输入，不应触发提交。
+
+## 数据与演示边界
+
+- 数据只存储在当前浏览器的 IndexedDB，数据库名为 `thoughtCatcher`。
+- `localhost` 与 `127.0.0.1`、不同端口、不同浏览器分别使用独立数据。演示时保持同一地址。
+- 清除网站数据、无痕模式结束或切换浏览器可能让你看不到旧记录；本 Demo 没有云同步或导出备份。
+- 口语、正式表达和语法内容用于展示界面与数据流，不能当作真实翻译结果。
+- 快捷键是 **Ctrl / ⌘ + K**，单独按 K 不会打开面板。
+- 尚未接入真实模型、账号、云端数据库或多语言翻译。
+
+## 验证命令
+
+```bash
+npm test
+npm run lint
+npm run build
 ```
+
+测试使用模拟 IndexedDB，不修改浏览器里的日常记录。`npm run build` 会进行 TypeScript 检查并生成 `dist/`。

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { type ThoughtDraft } from '../db/database'
 import { mockAiTranslate } from '../lib/mockAiTranslate'
 
@@ -20,16 +20,17 @@ export function useThoughtCapture({
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<Error | null>(null)
+  const submissionPending = useRef(false)
 
   async function submitThought(): Promise<boolean> {
     const originalText = inputValue.trim()
-    if (!originalText || isSubmitting) {
+    if (!originalText || submissionPending.current) {
       return false
     }
 
+    submissionPending.current = true
     setIsSubmitting(true)
     setSubmitError(null)
-    setInputValue('')
 
     try {
       const translation = await mockAiTranslate(originalText)
@@ -42,12 +43,13 @@ export function useThoughtCapture({
         tags: translation.tags,
       })
 
+      setInputValue('')
       return true
     } catch (error) {
-      setInputValue(originalText)
       setSubmitError(error instanceof Error ? error : new Error(String(error)))
       return false
     } finally {
+      submissionPending.current = false
       setIsSubmitting(false)
     }
   }

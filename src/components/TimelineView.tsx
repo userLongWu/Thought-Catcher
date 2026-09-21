@@ -3,7 +3,7 @@ import { groupThoughtsByDay } from '../lib/timeline'
 import { ThoughtCard } from './ThoughtCard'
 
 function TimelineShortcutHint() {
-  return <p className="mt-6 text-sm text-neutral-600">按下 K 或 Ctrl+K 捕捉脑海中的念头</p>
+  return <p className="mt-6 text-sm text-neutral-600">点击“新建念头”或按 Ctrl/Cmd+K，捕捉脑海中的念头</p>
 }
 
 export function TimelineView() {
@@ -14,7 +14,7 @@ export function TimelineView() {
       <>
         <TimelineShortcutHint />
         <section className="mt-8 rounded-[24px] border border-dashed border-neutral-800 bg-neutral-950/50 p-6 text-sm text-neutral-500">
-          Loading timeline...
+          正在读取本地念头…
         </section>
       </>
     )
@@ -24,8 +24,8 @@ export function TimelineView() {
     return (
       <>
         <TimelineShortcutHint />
-        <section className="mt-8 rounded-[24px] border border-red-900/60 bg-red-950/20 p-6 text-sm text-red-200">
-          Failed to read local thoughts: {error.message}
+        <section role="alert" className="mt-8 rounded-[24px] border border-red-900/60 bg-red-950/20 p-6 text-sm text-red-200">
+          读取本地念头失败，请刷新后重试： {error.message}
         </section>
       </>
     )
@@ -36,7 +36,7 @@ export function TimelineView() {
       <>
         <TimelineShortcutHint />
         <section className="mt-8 rounded-[24px] border border-dashed border-neutral-800 bg-neutral-950/50 p-6 text-sm text-neutral-500">
-          No thoughts yet. Capture one above and it will appear here instantly.
+          还没有念头。点击“新建念头”，记录第一个灵感。
         </section>
       </>
     )

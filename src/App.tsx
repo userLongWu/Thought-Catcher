@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { CommandPalette } from './components/CommandPalette'
 import { TimelineView } from './components/TimelineView'
 import { addThought } from './db/database'
@@ -6,66 +7,65 @@ import { useThoughtCapture } from './hooks/useThoughtCapture'
 
 function App() {
   const [isPaletteOpen, setIsPaletteOpen] = useState(true)
+  const [saveNotice, setSaveNotice] = useState('')
+  const newThoughtButton = useRef<HTMLButtonElement>(null)
   const { inputValue, isSubmitting, submitError, setInputValue, submitThought } =
-    useThoughtCapture({
-      addThought,
-    })
+    useThoughtCapture({ addThought })
+
+  useEffect(() => {
+    if (!isPaletteOpen) newThoughtButton.current?.focus()
+  }, [isPaletteOpen])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.isComposing || event.keyCode === 229) return
       const isPaletteShortcut = event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
-
-      if (isPaletteShortcut) {
+      if (isPaletteShortcut || event.key === 'Escape') {
         event.preventDefault()
-        setIsPaletteOpen((currentValue) => !currentValue)
-        return
-      }
-
-      if (event.key === 'Escape') {
-        setIsPaletteOpen(false)
+        if (isSubmitting) return
+        if (isPaletteShortcut) {
+          setSaveNotice('')
+          setIsPaletteOpen((currentValue) => !currentValue)
+        } else {
+          setIsPaletteOpen(false)
+        }
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
-
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [isSubmitting])
 
   async function handlePaletteSubmit() {
-    const didSaveThought = await submitThought()
-
-    if (didSaveThought) {
+    if (await submitThought()) {
+      setSaveNotice('念头已保存到当前浏览器。')
       setIsPaletteOpen(false)
     }
   }
 
   return (
     <main className="min-h-screen bg-neutral-950 px-4 py-8 text-neutral-100 sm:px-6 lg:px-8">
-      <section className="mx-auto w-full max-w-5xl">
-        <header className="flex items-center justify-between border-b border-neutral-900 pb-6">
+      <section className="mx-auto w-full max-w-5xl" aria-hidden={isPaletteOpen ? true : undefined}>
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-900 pb-6">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Thought Catcher</p>
-            <h1 className="mt-2 text-2xl font-semibold text-white">Timeline</h1>
+            <h1 className="mt-2 text-2xl font-semibold text-white">念头时间线</h1>
+            <p className="mt-2 text-sm text-neutral-400">模拟 AI 演示 · 本地保存 · 不提供真实翻译</p>
           </div>
+          <button ref={newThoughtButton} type="button" onClick={() => { setSaveNotice(''); setIsPaletteOpen(true) }} className="flex min-h-11 items-center gap-2 rounded-xl bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-white"><Plus className="h-4 w-4" aria-hidden="true" />新建念头</button>
         </header>
-
-        {isPaletteOpen ? (
-          <CommandPalette
-            value={inputValue}
-            isSubmitting={isSubmitting}
-            onValueChange={setInputValue}
-            onSubmit={handlePaletteSubmit}
-          />
-        ) : null}
-
-        {submitError ? (
-          <div className="mt-4 rounded-2xl border border-red-900/60 bg-red-950/20 px-4 py-3 text-sm text-red-200">
-            Failed to capture thought: {submitError.message}
-          </div>
-        ) : null}
-
+        <p role="status" className="mt-4 text-sm text-neutral-300">{saveNotice}</p>
         <TimelineView />
       </section>
+      {isPaletteOpen ? (
+        <CommandPalette
+          value={inputValue}
+          isSubmitting={isSubmitting}
+          error={submitError}
+          onValueChange={setInputValue}
+          onSubmit={handlePaletteSubmit}
+          onClose={() => { if (!isSubmitting) setIsPaletteOpen(false) }}
+        />
+      ) : null}
     </main>
   )
 }
